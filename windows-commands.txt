@@ -1,0 +1,20 @@
+# Copiar archivos
+Copy-Item -Path D:\LinuxManjaro\ProyectoGrado\movil\proyecto_grado\assets -Destination ./ -Recurse
+
+# Mover archivos
+Move-Item -Path "C:\Ruta\Origen\archivo.txt" -Destination "C:\Ruta\Destino"
+
+# Eliminar archivos
+Remove-Item -Path "C:\Ruta\ArchivoO Carpeta"
+
+
+# Buscar texto
+Select-String -Path "C:\Ruta\archivo.txt" -Pattern "texto_a_buscar"
+Get-Content -Path "C:\Ruta\archivo.txt" | Where-Object {$_ -like "*texto_a_buscar*"}
+
+# Procesos
+Stop-Process -Id ID_del_Proceso
+Get-Process -Name Nombre_del_Programa | Stop-Process
+
+# Imprimir por consola
+Write-Host "El valor de la variable de entorno PATH es: $($env:PATH)"
