@@ -9,18 +9,18 @@ class Equipo {
   String? descripcion;
   double? precio;
   double? stock;
-  Equipo(
-      {
-        required this.nombre,
-        required this.descripcion,
-        required this.precio,
-        required this.stock,
-      });
+  Equipo({
+    required this.nombre,
+    required this.descripcion,
+    required this.precio,
+    required this.stock,
+  });
 }
+
 class CrearEquipo with ChangeNotifier {
   Equipo? _producto;
   Future<int> login(String nombre, String descripcion) async {
-    var url = Uri.parse("http://192.168.1.22:3000/producto");
+    var url = Uri.parse("http://15.228.155.14/producto");
     var headers = {"Content-Type": "application/json"};
     var body = json.encode({'nombre': nombre, 'descripcion': descripcion});
     try {

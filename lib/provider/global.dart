@@ -47,13 +47,13 @@ class LogginProvider with ChangeNotifier {
 
   Future<int> login(String username, String password) async {
     print("login");
-    var url = Uri.parse("http://192.168.1.22:3000/auth");
+    var url = Uri.parse("http://15.228.155.14/auth");
     var headers = {"Content-Type": "application/json"};
     var body = json.encode({'username': username, 'password': password});
     try {
       var response = await http.post(url, headers: headers, body: body);
       if (response.statusCode == 200) {
-      print(json.decode(response.body));
+        print(json.decode(response.body));
         var responseData = json.decode(response.body);
 
         // Asumiendo que la respuesta contiene los campos necesarios

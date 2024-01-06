@@ -5,6 +5,7 @@ import 'package:proyecto/provider/global.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:proyecto/theme/theme.dart';
 import 'package:proyecto/componentes/Equipo/equipos.dart';
+import 'package:proyecto/componentes/Servicio/servicio.dart';
 
 void main() {
   runApp(ChangeNotifierProvider(
@@ -341,7 +342,7 @@ class _ContentHome extends State<ContentHome> {
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => Servicios()));
+                  MaterialPageRoute(builder: (context) => Servicio()));
             },
           ),
         ),

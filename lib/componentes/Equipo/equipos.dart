@@ -7,7 +7,6 @@ import 'package:image_picker/image_picker.dart'; // Añade esta línea para el s
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-
 class Equipos extends StatefulWidget {
   @override
   _EquipoState createState() => _EquipoState();
@@ -44,41 +43,21 @@ class _EquipoState extends State<Equipos> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
             _buildTabItem(
-              index: 0,
-              icon: Icon(
-                Icons.home,
-                size: 33,
-              ),
-              label: 'Inicio',
-            ),
-            Spacer(),
-            _buildTabItem(
               index: 1,
               icon: Icon(
-                Icons.business,
+                Icons.filter_list,
                 size: 33,
               ),
-              label: 'Negocios',
-            ),
-            Spacer(),
-            Spacer(),
-            Spacer(),
-            _buildTabItem(
-              index: 2,
-              icon: Icon(
-                Icons.school,
-                size: 33,
-              ),
-              label: 'Escuela',
+              label: 'Busqueda',
             ),
             Spacer(),
             _buildTabItem(
-              index: 3,
+              index: 0,
               icon: Icon(
-                Icons.listen,
+                Icons.list,
                 size: 33,
               ),
-              label: 'Perfil',
+              label: 'Lista',
             ),
           ],
         ),
@@ -94,12 +73,6 @@ class _EquipoState extends State<Equipos> {
         return ListaEquipos();
       case 1:
         return Text('Negocios');
-      case 2:
-        return Text('Escuela');
-      case 3:
-        return Text('Perfil');
-      case 4:
-        return ProductoForm();
       default:
         return ListaEquipos();
     }
@@ -135,32 +108,32 @@ class _EquipoState extends State<Equipos> {
         ),
         FloatingActionButton(
           child: Icon(Icons.add, color: Colors.white),
-onPressed: () {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('Agregar Producto'),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.close),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Cierra el diálogo
-                  },
-                ),
-              ],
-            ),
-            body: ProductoForm(),  // Tu formulario de producto
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        );
-      },
-    );
-  },
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return Dialog(
+                  child: Scaffold(
+                    appBar: AppBar(
+                      title: Text('Agregar Producto'),
+                      actions: [
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Cierra el diálogo
+                          },
+                        ),
+                      ],
+                    ),
+                    body: ProductoForm(), // Tu formulario de producto
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                );
+              },
+            );
+          },
           backgroundColor: Colors.transparent,
           elevation: 0,
         ),
@@ -181,8 +154,6 @@ onPressed: () {
     );
   }
 }
-
-
 
 class ProductoForm extends StatefulWidget {
   @override
@@ -291,6 +262,7 @@ class _ProductoFormState extends State<ProductoForm> {
       ),
     );
   }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -352,12 +324,6 @@ class _ProductoFormState extends State<ProductoForm> {
     });
   }
 
-
-
-
-
-
-
   void _submitForm() async {
     // Imprimir los datos del formulario en la consola (opcional)
     print('Nombre: ${_nombreController.text}');
@@ -381,8 +347,8 @@ class _ProductoFormState extends State<ProductoForm> {
   }
 
   Future<int> _enviarDatosProducto() async {
-
-    var url = Uri.parse('http://192.168.1.22:3000/equipo'); // Reemplaza con la URL de tu API
+    var url = Uri.parse(
+        'http://15.228.155.14/equipo'); // Reemplaza con la URL de tu API
     var headers = {"Content-Type": "application/json"};
     double? precio = double.tryParse(_precioController.text);
     int? stock = int.tryParse(_stockController.text);
@@ -411,20 +377,6 @@ class _ProductoFormState extends State<ProductoForm> {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Equipo {
   final String? id;
   final String nombre;
@@ -444,7 +396,7 @@ class Equipo {
 
   factory Equipo.fromJson(Map<String, dynamic> json) {
     return Equipo(
-      id: json["id"]??'',
+      id: json["id"] ?? '',
       nombre: json['nombre'],
       descripcion: json['descripcion'] ?? 'sin descripción',
       precio: json['precio'] != null ? json['precio'].toDouble() : null,
@@ -470,7 +422,7 @@ class _ListaEquiposState extends State<ListaEquipos> {
   }
 
   Future<void> _cargarEquipos() async {
-    var url = Uri.parse('http://192.168.1.22:3000/equipo');
+    var url = Uri.parse('http://15.228.155.14/equipo');
     var response = await http.get(url);
     if (response.statusCode == 200) {
       List<dynamic> equiposJson = json.decode(response.body);
@@ -483,17 +435,19 @@ class _ListaEquiposState extends State<ListaEquipos> {
       // Manejar error
     }
   }
+
   Future<void> _borrarEquipo(String id) async {
-    var url = Uri.parse('http://192.168.1.22:3000/equipo/'+id);
+    var url = Uri.parse('http://15.228.155.14/equipo/' + id);
     print('url: ${url}');
     var response = await http.delete(url);
     if (response.statusCode == 200) {
-          _cargarEquipos();
+      _cargarEquipos();
     } else {
       print('error al cargar equipos');
       // Manejar error
     }
   }
+
   void _filtrarEquipos(String query) {
     setState(() {
       if (query.isEmpty) {
@@ -509,9 +463,6 @@ class _ListaEquiposState extends State<ListaEquipos> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Lista de Equipos'),
-      ),
       body: Column(
         children: [
           Padding(
@@ -538,16 +489,16 @@ class _ListaEquiposState extends State<ListaEquipos> {
                         ),
                       );
                     },
-
                     child: Column(
                       children: <Widget>[
-                      if (equipo.imageUrl != null && equipo.imageUrl!.isNotEmpty)
-                        Image.network(
-                          equipo.imageUrl!,
-                          height: 100,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
+                        if (equipo.imageUrl != null &&
+                            equipo.imageUrl!.isNotEmpty)
+                          Image.network(
+                            equipo.imageUrl!,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                         ListTile(
                           title: Text(equipo.nombre),
                           subtitle: Text(
@@ -566,7 +517,7 @@ class _ListaEquiposState extends State<ListaEquipos> {
                                 onPressed: () {
                                   // Lógica para eliminar
                                   print('id: ${equipo}');
-                                  _borrarEquipo(equipo.id??'');
+                                  _borrarEquipo(equipo.id ?? '');
                                 },
                               ),
                             ],
