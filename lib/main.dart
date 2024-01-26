@@ -3,19 +3,72 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/provider/global.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:proyecto/provider/producto.dart';
+import 'package:proyecto/provider/servicioEquipoProvider.dart';
 import 'package:proyecto/theme/theme.dart';
-import 'package:proyecto/componentes/Equipo/equipos.dart';
+// import 'package:proyecto/componentes/Equipo/equipos.dart';
+import 'package:proyecto/componentes/Equipo/articulos.dart';
+import 'package:proyecto/componentes/Empleado/main.dart';
 import 'package:proyecto/componentes/Servicio/servicio.dart';
+import 'package:proyecto/provider/engine.dart';
+import 'dart:async';
 
-void main() {
-  runApp(ChangeNotifierProvider(
-    create: (context) => LogginProvider(),
-    child: const Proyecto(),
-  ));
+// void main() {
+//   runApp(ChangeNotifierProvider(
+//     create: (context) => LogginProvider(),
+//     child: const Proyecto(),
+//   ));
+// }
+void main() async {
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await DatabaseManager().initDatabase();
+  runApp(
+    MultiProvider(providers: [
+      ChangeNotifierProvider(
+        create: (_) => LogginProvider(),
+      ),
+      ChangeNotifierProvider(
+        create: (_) => ProveedorGlobal(),
+      ),
+      ChangeNotifierProvider(create: (_) => ServicioEquipoProvider())
+    ], child: const Proyecto()),
+  );
 }
 
-class Proyecto extends StatelessWidget {
-  const Proyecto({super.key});
+class Proyecto extends StatefulWidget {
+  const Proyecto({Key? key}) : super(key: key);
+  @override
+  _ProyectoState createState() => _ProyectoState();
+}
+
+class _ProyectoState extends State<Proyecto> {
+  late Timer _timer;
+  @override
+  void initState() {
+    super.initState();
+    final servicioEquipoProvider =
+        Provider.of<ServicioEquipoProvider>(context, listen: false);
+    servicioEquipoProvider.syncEquipo();
+    _startBackgroundProcess();
+  }
+
+  Future<void> _startBackgroundProcess() async {
+    const Duration interval = Duration(seconds: 10);
+    _timer = Timer.periodic(interval, (Timer timer) async {
+      print('inicio de sync');
+      final servicioEquipoProvider =
+          Provider.of<ServicioEquipoProvider>(context, listen: false);
+      await servicioEquipoProvider.syncEquipo();
+      print('final de sync');
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -341,8 +394,8 @@ class _ContentHome extends State<ContentHome> {
             ]),
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => Servicio()));
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Servicio()));
             },
           ),
         ),
@@ -376,16 +429,16 @@ class _ContentHome extends State<ContentHome> {
             leading: Icon(Icons.add_box_sharp),
             title:
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text("Productos", style: GoogleFonts.lato(fontSize: 19)),
+              Text("Articulos", style: GoogleFonts.lato(fontSize: 19)),
               Text(
-                "Lista de  productos",
+                "Productos: Equipos, Herramientas, Insumos",
                 style: GoogleFonts.lato(fontSize: 13, color: Colors.cyan),
               )
             ]),
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {
               Navigator.push(context,
-              MaterialPageRoute(builder:(context)=>Equipos()));
+                  MaterialPageRoute(builder: (context) => Articulos()));
             },
           ),
         ),
@@ -409,6 +462,34 @@ class _ContentHome extends State<ContentHome> {
             ]),
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {},
+          ),
+        ),
+        Divider(
+          height: 1,
+        ),
+        Divider(
+          height: 1,
+        ),
+        Ink(
+          color: Theme.of(context).primaryColor,
+          child: ListTile(
+            leading: Icon(
+              Icons.person,
+              size: 40,
+            ),
+            title:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text("Empleados", style: GoogleFonts.lato(fontSize: 19)),
+              Text(
+                "Empleados , Técnicos",
+                style: GoogleFonts.lato(fontSize: 13, color: Colors.cyan),
+              )
+            ]),
+            trailing: Icon(Icons.arrow_forward_ios, size: 15),
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MainEmpleado()));
+            },
           ),
         ),
         Divider(
@@ -543,6 +624,7 @@ class _ServiciosState extends State<Servicios> {
       ],
     );
   }
+
   Widget _buildTabItem({
     required int index,
     required Icon icon,

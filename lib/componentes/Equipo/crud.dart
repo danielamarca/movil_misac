@@ -1,26 +1,29 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto/provider/server.dart';
 import 'package:http/http.dart' as http;
 
-class Equipo {
-  String? id;
-  String? nombre;
-  String? descripcion;
-  double? precio;
-  double? stock;
-  Equipo({
-    required this.nombre,
-    required this.descripcion,
-    required this.precio,
-    required this.stock,
-  });
-}
+import 'package:proyecto/componentes/Equipo/entidades.dart';
+
+// class Equipo {
+//   String? id;
+//   String? nombre;
+//   String? descripcion;
+//   double? precio;
+//   double? stock;
+//   Equipo({
+//     required this.nombre,
+//     required this.descripcion,
+//     required this.precio,
+//     required this.stock,
+//   });
+// }
 
 class CrearEquipo with ChangeNotifier {
   Equipo? _producto;
   Future<int> login(String nombre, String descripcion) async {
-    var url = Uri.parse("http://15.228.155.14/producto");
+    var url = Uri.parse('${Server().url}/producto');
     var headers = {"Content-Type": "application/json"};
     var body = json.encode({'nombre': nombre, 'descripcion': descripcion});
     try {

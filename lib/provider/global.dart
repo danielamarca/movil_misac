@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:proyecto/provider/server.dart';
 
 class User {
   String id;
@@ -47,7 +48,8 @@ class LogginProvider with ChangeNotifier {
 
   Future<int> login(String username, String password) async {
     print("login");
-    var url = Uri.parse("http://15.228.155.14/auth");
+    var url = Uri.parse('${Server().url}/auth');
+    print(url);
     var headers = {"Content-Type": "application/json"};
     var body = json.encode({'username': username, 'password': password});
     try {
