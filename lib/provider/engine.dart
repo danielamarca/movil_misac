@@ -15,13 +15,89 @@ abstract class DatabaseTable {
   }
 }
 
+class SyncTable extends DatabaseTable {
+  @override
+  String get tableName => 'sync';
+
+  @override
+  String get createTableQuery => '''
+   CREATE TABLE IF NOT EXISTS sync(
+      id INTEGER PRIMARY KEY,
+      tabla TEXT,
+      action TEXT,
+      id_tabla TEXT,
+      createdAt TEXT,
+      updatedAt TEXT
+    )
+  ''';
+
+  Future<void> deleteTable(Database db) async {
+    await db.transaction((txn) async {
+      await txn.execute('DROP TABLE IF EXISTS sync');
+      await txn.execute(createTableQuery);
+    });
+  }
+}
+
+class ServerTable extends DatabaseTable {
+  @override
+  String get tableName => 'server';
+
+  @override
+  String get createTableQuery => '''
+   CREATE TABLE IF NOT EXISTS server(
+      ip TEXT,
+      mode TEXT,
+      dateSync TEXT
+    )
+  ''';
+
+  Future<void> deleteTable(Database db) async {
+    await db.transaction((txn) async {
+      await txn.execute('DROP TABLE IF EXISTS server');
+      await txn.execute(createTableQuery);
+    });
+  }
+
+  Future<void> updateSyncDate(Database db, String dateSync) async {
+    await db.update(
+      tableName,
+      {'dateSync': dateSync},
+    );
+  }
+}
+
+class SyncLocalTable extends DatabaseTable {
+  @override
+  String get tableName => 'sync_local';
+
+  @override
+  String get createTableQuery => '''
+   CREATE TABLE IF NOT EXISTS sync_local(
+      id INTEGER PRIMARY KEY,
+      tabla TEXT,
+      action TEXT,
+      id_tabla TEXT,
+      createdAt TEXT,
+      updatedAt TEXT
+    )
+  ''';
+
+  Future<void> deleteTable(Database db) async {
+    await db.transaction((txn) async {
+      await txn.execute('DROP TABLE IF EXISTS sync_local');
+      await txn.execute(createTableQuery);
+    });
+  }
+}
+
 class UsuarioTable extends DatabaseTable {
   @override
   String get tableName => 'usuario';
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE usuario(
+    CREATE TABLE IF NOT EXISTS usuario(
       id TEXT PRIMARY KEY,
       id_empleado TEXT REFERENCES empleado(id),
       username TEXT UNIQUE,
@@ -46,7 +122,7 @@ class ClienteTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE cliente(
+    CREATE TABLE IF NOT EXISTS cliente(
       id TEXT PRIMARY KEY,
       cod_cliente TEXT,
       nombres TEXT,
@@ -76,7 +152,7 @@ class EmpleadoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE empleado(
+    CREATE TABLE IF NOT EXISTS empleado(
       id TEXT PRIMARY KEY,
       rol TEXT,
       salario REAL,
@@ -107,7 +183,7 @@ class TecnicoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE tecnico(
+    CREATE TABLE IF NOT EXISTS tecnico(
       id TEXT PRIMARY KEY,
       id_empleado TEXT REFERENCES empleado(id),
       especialidad TEXT,
@@ -130,7 +206,7 @@ class ProveedorTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE proveedor (
+    CREATE TABLE IF NOT EXISTS proveedor (
       id TEXT PRIMARY KEY,
       nombre TEXT UNIQUE,
       descripcion TEXT,
@@ -155,7 +231,7 @@ class EquipoCategoriaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE equipo_categoria (
+    CREATE TABLE IF NOT EXISTS equipo_categoria (
       id TEXT PRIMARY KEY,
       nombre TEXT UNIQUE,
       descripcion TEXT,
@@ -178,7 +254,7 @@ class EquipoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE equipo(
+    CREATE TABLE IF NOT EXISTS equipo(
       id TEXT PRIMARY KEY,
       id_proveedor TEXT,
       id_equipo_categoria TEXT,
@@ -205,7 +281,7 @@ class EquipoCodigoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE equipo_codigo (
+    CREATE TABLE IF NOT EXISTS equipo_codigo (
       id TEXT PRIMARY KEY,
       id_equipo TEXT REFERENCES equipo(id),
       id_servicio TEXT,
@@ -231,7 +307,7 @@ class EquipoFotoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE equipo_foto (
+    CREATE TABLE IF NOT EXISTS equipo_foto (
       id TEXT PRIMARY KEY,
       id_equipo TEXT REFERENCES equipo(id),
       archivoUrl TEXT,
@@ -256,7 +332,7 @@ class HerramientaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE herramienta (
+    CREATE TABLE IF NOT EXISTS herramienta (
       id TEXT PRIMARY KEY,
       nombre TEXT UNIQUE,
       descripcion TEXT,
@@ -280,7 +356,7 @@ class HerramientaFotoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE herramienta_foto (
+    CREATE TABLE IF NOT EXISTS herramienta_foto (
       id TEXT PRIMARY KEY,
       id_herramienta TEXT REFERENCES herramienta(id),
       archivoUrl TEXT,
@@ -305,7 +381,7 @@ class InsumoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE insumo (
+    CREATE TABLE IF NOT EXISTS insumo (
       id TEXT PRIMARY KEY,
       id_proveedor TEXT REFERENCES proveedor(id),
       nombre TEXT,
@@ -331,7 +407,7 @@ class InsumoFotoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE insumo_foto (
+    CREATE TABLE IF NOT EXISTS insumo_foto (
       id TEXT PRIMARY KEY,
       id_insumo TEXT REFERENCES insumo(id),
       archivoUrl TEXT,
@@ -356,7 +432,7 @@ class ServicioTipoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio_tipo (
+    CREATE TABLE IF NOT EXISTS servicio_tipo (
       id TEXT PRIMARY KEY,
       tipo TEXT UNIQUE,
       descripcion TEXT,
@@ -379,7 +455,7 @@ class ServicioTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio (
+    CREATE TABLE IF NOT EXISTS servicio (
       id TEXT PRIMARY KEY,
       id_servicio_tipo TEXT REFERENCES servicio_tipo(id),
       id_cliente TEXT REFERENCES cliente(id),
@@ -408,12 +484,13 @@ class ServicioInspeccionTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio_inspeccion (
+    CREATE TABLE IF NOT EXISTS servicio_inspeccion (
       id TEXT PRIMARY KEY,
       id_servicio TEXT REFERENCES servicio(id),
       estado TEXT UNIQUE,
-      monto REAL,
+      costo REAL,
       observacion TEXT,
+      fechaInspeccion TEXT,
       createdAt TEXT,
       updatedAt TEXT
     )
@@ -433,12 +510,12 @@ class ServicioEquipoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio_equipo (
+    CREATE TABLE IF NOT EXISTS servicio_equipo (
       id TEXT PRIMARY KEY,
       id_equipo TEXT REFERENCES equipo(id),
       id_servicio TEXT REFERENCES servicio(id),
       cantidad INTEGER,
-      unidad TEXT,
+      codigo TEXT,
       createdAt TEXT,
       updatedAt TEXT
     )
@@ -458,7 +535,7 @@ class ServicioHerramientaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio_herramienta (
+    CREATE TABLE IF NOT EXISTS servicio_herramienta (
       id TEXT PRIMARY KEY,
       id_herramienta TEXT REFERENCES herramienta(id),
       id_servicio TEXT REFERENCES servicio(id),
@@ -482,7 +559,7 @@ class ServicioInsumoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE servicio_insumo (
+    CREATE TABLE IF NOT EXISTS servicio_insumo (
       id TEXT PRIMARY KEY,
       id_insumo TEXT REFERENCES insumo(id),
       id_servicio TEXT REFERENCES servicio(id),
@@ -507,12 +584,13 @@ class TareaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE tarea (
+    CREATE TABLE IF NOT EXISTS tarea (
       id TEXT PRIMARY KEY,
       id_servicio TEXT REFERENCES servicio(id),
       descripcion TEXT,
       estado INTEGER,
       comentarios TEXT,
+      costo REAL,
       fechaInicio TEXT,
       fechaFin TEXT,
       createdAt TEXT,
@@ -534,7 +612,7 @@ class TareaFotoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE tarea_foto (
+    CREATE TABLE IF NOT EXISTS tarea_foto (
       id TEXT PRIMARY KEY,
       id_tarea TEXT REFERENCES tarea(id),
       archivoUrl TEXT,
@@ -559,7 +637,7 @@ class VentaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE venta (
+    CREATE TABLE IF NOT EXISTS venta (
       id TEXT PRIMARY KEY,
       id_cliente TEXT REFERENCES cliente(id),
       tipo TEXT,
@@ -585,7 +663,7 @@ class VentaPagoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE venta_pago (
+    CREATE TABLE IF NOT EXISTS venta_pago (
       id TEXT PRIMARY KEY,
       id_venta TEXT REFERENCES venta(id),
       fecha TEXT,
@@ -609,7 +687,7 @@ class VentaEquipoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE venta_equipo (
+    CREATE TABLE IF NOT EXISTS venta_equipo (
       id TEXT PRIMARY KEY,
       id_equipo TEXT REFERENCES equipo(id),
       id_venta TEXT REFERENCES venta(id),
@@ -634,7 +712,7 @@ class VentaInsumoTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE venta_insumo (
+    CREATE TABLE IF NOT EXISTS venta_insumo (
       id TEXT PRIMARY KEY,
       id_insumo TEXT REFERENCES insumo(id),
       id_venta TEXT REFERENCES venta(id),
@@ -659,7 +737,7 @@ class CotizacionTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE cotizacion (
+    CREATE TABLE IF NOT EXISTS cotizacion (
       id TEXT PRIMARY KEY,
       id_cliente TEXT REFERENCES cliente(id),
       fechaCreacion TEXT,
@@ -685,7 +763,7 @@ class CotizacionServicioTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE cotizacion_servicio (
+    CREATE TABLE IF NOT EXISTS cotizacion_servicio (
       id TEXT PRIMARY KEY,
       id_cotizacion TEXT REFERENCES cotizacion(id),
       id_servicio TEXT REFERENCES servicio(id),
@@ -712,7 +790,7 @@ class CotizacionVentaTable extends DatabaseTable {
 
   @override
   String get createTableQuery => '''
-    CREATE TABLE cotizacion_venta (
+    CREATE TABLE IF NOT EXISTS cotizacion_venta (
       id TEXT PRIMARY KEY,
       id_cotizacion TEXT REFERENCES cotizacion(id),
       id_venta TEXT REFERENCES venta(id),
@@ -736,6 +814,9 @@ class CotizacionVentaTable extends DatabaseTable {
 class DatabaseManager {
   late Database _database;
   late List<DatabaseTable> tables = [
+    ServerTable(),
+    SyncTable(),
+    SyncLocalTable(),
     ClienteTable(),
     EmpleadoTable(),
     TecnicoTable(),
@@ -751,7 +832,6 @@ class DatabaseManager {
     InsumoFotoTable(),
     ServicioTable(),
     ServicioTipoTable(),
-    ServicioTable(),
     ServicioInspeccionTable(),
     ServicioEquipoTable(),
     ServicioHerramientaTable(),
@@ -768,8 +848,6 @@ class DatabaseManager {
   ];
 
   DatabaseManager() {
-    print('Inicializando DatabaseManager');
-
     initDatabase();
   }
   Future<Database> get database async {
@@ -817,23 +895,6 @@ class DatabaseManager {
     return await db.insert(tableName, data);
   }
 
-  // Future<List<Map<String, dynamic>>> getDataWithDetails(
-  //     String tableName) async {
-  //   final db = await database;
-  //   return await db.rawQuery('''
-  //     SELECT
-  //       equipo.id AS id,
-  //       equipo.id_proveedor AS id_proveedor_id,
-  //       proveedor.nombre AS id_proveedor_nombre,
-  //       proveedor.descripcion AS id_proveedor_descripcion,
-  //       equipo.id_equipo_categoria AS id_equipo_categoria,
-  //       equipo.nombre AS nombre,
-  //       equipo.descripcion AS descripcion,
-  //       equipo.stock AS stock,
-  //       equipo.precio AS precio
-  //     FROM $tableName
-  //   ''');
-  // }
   Future<List<Map<String, dynamic>>> getData(String tableName) async {
     final db = await database;
     return await db.rawQuery('''
@@ -855,44 +916,135 @@ class DatabaseManager {
     }
   }
 
-  // Future<List<Map<String, dynamic>>> getDataEquipoWithDetails() async {
-  //   final db = await database;
-  //   return await db.rawQuery('''
-  //   SELECT
-  //     equipo.id AS id,
-  //     equipo.id_proveedor AS id_proveedor_id,
-  //     proveedor.nombre AS id_proveedor_nombre,
-  //     proveedor.descripcion AS id_proveedor_descripcion,
-  //     equipo.id_equipo_categoria AS id_equipo_categoria,
-  //     equipo.nombre AS nombre,
-  //     equipo.descripcion AS descripcion,
-  //     equipo.stock AS stock,
-  //     equipo.precio AS precio,
-  //     equipo.createdAt AS createdAt,
-  //     equipo.updatedAt AS updatedAt,
-  //     proveedor.id AS proveedors_id,
-  //     proveedor.nombre AS proveedors_nombre,
-  //     proveedor.descripcion AS proveedors_descripcion,
-  //     proveedor.direccion AS proveedors_direccion,
-  //     proveedor.contacto AS proveedors_contacto,
-  //     proveedor.createdAt AS proveedors_createdAt,
-  //     proveedor.updatedAt AS proveedors_updatedAt,
-  //     equipo_categoria.id AS equipoCategorias_id,
-  //     equipo_categoria.nombre AS equipoCategorias_nombre,
-  //     equipo_categoria.descripcion AS equipoCategorias_descripcion,
-  //     equipo_categoria.createdAt AS equipoCategorias_createdAt,
-  //     equipo_categoria.updatedAt AS equipoCategorias_updatedAt,
-  //     equipo_foto.id AS equipoFoto_id,
-  //     equipo_foto.id_equipo AS equipoFoto_id_equipo,
-  //     equipo_foto.archivoUrl AS equipoFoto_archivoUrl,
-  //     equipo_foto.formato AS equipoFoto_formato,
-  //     equipo_foto.descripcion AS equipoFoto_descripcion,
-  //     equipo_foto.createdAt AS equipoFoto_createdAt,
-  //     equipo_foto.updatedAt AS equipoFoto_updatedAt
-  //   FROM equipo AS equipo
-  //   LEFT JOIN proveedor ON equipo.id_proveedor = proveedor.id
-  //   LEFT JOIN equipo_categoria ON equipo.id_equipo_categoria = equipo_categoria.id
-  //   LEFT JOIN equipo_foto ON equipo.id = equipo_foto.id_equipo
-  // ''');
-  // }
+  Future<List<Map<String, dynamic>>> getDataEquipoWithDetails() async {
+    final db = await database;
+    return await db.rawQuery('''
+    SELECT
+      equipo.id AS id,
+      equipo.id_proveedor AS id_proveedor_id,
+      proveedor.nombre AS id_proveedor_nombre,
+      proveedor.descripcion AS id_proveedor_descripcion,
+      equipo.id_equipo_categoria AS id_equipo_categoria,
+      equipo.nombre AS nombre,
+      equipo.descripcion AS descripcion,
+      equipo.stock AS stock,
+      equipo.precio AS precio,
+      equipo.createdAt AS createdAt,
+      equipo.updatedAt AS updatedAt,
+      proveedor.id AS proveedors_id,
+      proveedor.nombre AS proveedors_nombre,
+      proveedor.descripcion AS proveedors_descripcion,
+      proveedor.direccion AS proveedors_direccion,
+      proveedor.contacto AS proveedors_contacto,
+      proveedor.createdAt AS proveedors_createdAt,
+      proveedor.updatedAt AS proveedors_updatedAt,
+      equipo_categoria.id AS equipoCategorias_id,
+      equipo_categoria.nombre AS equipoCategorias_nombre,
+      equipo_categoria.descripcion AS equipoCategorias_descripcion,
+      equipo_categoria.createdAt AS equipoCategorias_createdAt,
+      equipo_categoria.updatedAt AS equipoCategorias_updatedAt,
+      equipo_foto.id AS equipoFoto_id,
+      equipo_foto.id_equipo AS equipoFoto_id_equipo,
+      equipo_foto.archivoUrl AS equipoFoto_archivoUrl,
+      equipo_foto.formato AS equipoFoto_formato,
+      equipo_foto.descripcion AS equipoFoto_descripcion,
+      equipo_foto.createdAt AS equipoFoto_createdAt,
+      equipo_foto.updatedAt AS equipoFoto_updatedAt
+    FROM equipo AS equipo
+    LEFT JOIN proveedor ON equipo.id_proveedor = proveedor.id
+    LEFT JOIN equipo_categoria ON equipo.id_equipo_categoria = equipo_categoria.id
+    LEFT JOIN equipo_foto ON equipo.id = equipo_foto.id_equipo
+  ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getDataServicioWithDetails() async {
+    final db = await database;
+    return await db.rawQuery('''
+    SELECT
+      servicio.id AS id,
+      servicio.id_servicio_tipo AS id_servicio_tipo_id,
+      servicio.id_cliente AS id_cliente_id,
+      servicio.id_tecnico AS id_tecnico_id,
+      servicio.descripcion AS descripcion,
+      servicio.estado AS estado,
+      servicio.fechaInicio AS fechaInicio,
+      servicio.fechaFin AS fechaFin,
+      servicio.fechaProgramada AS fechaProgramada,
+      servicio.createdAt AS createdAt,
+      servicio.updatedAt AS updatedAt,
+      servicio_tipo.id AS servicio_tipo_id,
+      servicio_tipo.tipo AS servicio_tipo_tipo,
+      servicio_tipo.descripcion AS servicio_tipo_descripcion,
+      servicio_tipo.createdAt AS servicio_tipo_createdAt,
+      servicio_tipo.updatedAt AS servicio_tipo_updatedAt,
+      cliente.id AS cliente_id,
+      cliente.cod_cliente AS cliente_cod_cliente,
+      cliente.nombres AS cliente_nombres,
+      cliente.apellidoPaterno AS cliente_apellido_paterno,
+      cliente.apellidoMaterno AS cliente_apellido_materno,
+      cliente.nombreCompleto AS cliente_nombreCompleto,
+      cliente.ci AS cliente_ci,
+      cliente.direccion AS cliente_direccion,
+      cliente.telefono AS cliente_telefono,
+      cliente.correo AS cliente_correo,
+      cliente.createdAt AS cliente_createdAt,
+      cliente.updatedAt AS cliente_updatedAt,
+      tecnico.id AS tecnico_id,
+      tecnico.id_empleado AS tecnico_id_empleado_id,
+      tecnico.especialidad AS tecnico_especialidad,
+      tecnico.createdAt AS tecnico_createdAt,
+      tecnico.updatedAt AS tecnico_updatedAt,
+      empleado.id AS empleado_id,
+      empleado.rol AS empleado_rol,
+      empleado.salario AS empleado_salario,
+      empleado.nombres AS empleado_nombres,
+      empleado.apellidoPaterno AS empleado_apellido_paterno,
+      empleado.apellidoMaterno AS empleado_apellido_materno,
+      empleado.nombreCompleto AS empleado_nombreCompleto,
+      empleado.ci AS empleado_ci,
+      empleado.direccion AS empleado_direccion,
+      empleado.telefono AS empleado_telefono,
+      empleado.correo AS empleado_correo,
+      empleado.createdAt AS empleado_createdAt,
+      empleado.updatedAt AS empleado_updatedAt
+    FROM servicio
+    LEFT JOIN servicio_tipo ON servicio.id_servicio_tipo = servicio_tipo.id
+    LEFT JOIN cliente ON servicio.id_cliente = cliente.id
+    LEFT JOIN tecnico ON servicio.id_tecnico = tecnico.id
+    LEFT JOIN empleado ON tecnico.id_empleado = empleado.id
+  ''');
+  }
+
+  Future<List<Map<String, dynamic>>> getDataTecnicoWithDetails() async {
+    final db = await database;
+    return await db.rawQuery('''
+  SELECT
+  tecnico.id AS id,
+  tecnico.id_empleado AS id_empleado_id,
+  tecnico.especialidad AS especialidad,
+  tecnico.createdAt AS createdAt,
+  tecnico.updatedAt AS updatedAt,
+  empleado.id AS empleado_id,
+  empleado.rol AS empleado_rol,
+  empleado.salario AS empleado_salario,
+  empleado.nombres AS empleado_nombres,
+  empleado.apellidoPaterno AS empleado_apellido_paterno,
+  empleado.apellidoMaterno AS empleado_apellido_materno,
+  empleado.nombreCompleto AS empleado_nombreCompleto,
+  empleado.ci AS empleado_ci,
+  empleado.direccion AS empleado_direccion,
+  empleado.telefono AS empleado_telefono,
+  empleado.correo AS empleado_correo,
+  empleado.createdAt AS empleado_createdAt,
+  empleado.updatedAt AS empleado_updatedAt
+  FROM tecnico AS tecnico
+  LEFT JOIN empleado ON tecnico.id_empleado=empleado.id
+''');
+  }
+
+  Future<List<Map<String, dynamic>>> getUserByUsername(String username) async {
+    var db = await database;
+    return await db
+        .query('usuario', where: 'username = ?', whereArgs: [username]);
+  }
 }

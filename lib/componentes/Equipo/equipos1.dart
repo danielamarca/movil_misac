@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:proyecto/provider/server.dart';
-// import 'package:proyecto/componentes/Equipo/crud.dart';
+// import 'package:proyecto/componentes/EquipoDetalle/crud.dart';
 import 'package:proyecto/componentes/Equipo/nuevoEquipo.dart';
 import 'package:image_picker/image_picker.dart'; // Añade esta línea para el selector de imágenes
 import 'package:http/http.dart' as http;
@@ -26,48 +26,12 @@ class _EquipoState extends State<Equipos> {
     });
   }
 
-  late ListaEquipos _listaEquipos;
   late ServicioEquipoProvider _ServicioEquipoProvider; // Agregado
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _listaEquipos = ListaEquipos(onListaRecargada: _cargarListaEquipos);
-  //   _cargarListaEquipos(); // Cargar equipos al iniciar
-  // }
   @override
   void initState() {
-    // _ServicioEquipoProvider =
-    //     Provider.of<ServicioEquipoProvider>(context, listen: false);
-    _listaEquipos = ListaEquipos(onListaRecargada: _cargarListaEquipos);
     super.initState();
-    // _ServicioEquipoProvider =
-    //     Provider.of<ServicioEquipoProvider>(context, listen: false); // Agregado
-    // _listaEquipos =
-    //     ListaEquipos(onListaRecargada: _cargarListaEquipos); // Cambiado
-    // _cargarListaEquipos(); // Cargar equipos al iniciar
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  //   // Accede al proveedor en didChangeDependencies
-  //   _ServicioEquipoProvider = Provider.of<ServicioEquipoProvider>(context, listen: false);
-  //   _listaEquipos = ListaEquipos(onListaRecargada: _cargarListaEquipos);
-  //   _cargarListaEquipos();
-  // }
-
-  // void _cargarListaEquipos() async {
-  //   var url = Uri.parse('${Server().url}/equipo');
-  //   var response = await http.get(url);
-  //   if (response.statusCode == 200) {
-  //     List<dynamic> data = json.decode(response.body)['data'];
-  //     listaEquiposKey.currentState
-  //         ?.updateEquipos(data.map((json) => Equipo.fromJson(json)).toList());
-  //   } else {
-  //     // Manejo de error
-  //   }
-  // }
   void _cargarListaEquipos() async {
     // try {
     //   await _ServicioEquipoProvider.fetchAndSaveData();
@@ -179,7 +143,7 @@ class _EquipoState extends State<Equipos> {
         return Dialog(
           child: Scaffold(
             appBar: AppBar(
-              title: Text('Agregar Equipo'),
+              title: Text('Agregar EquipoDetalle'),
               actions: [
                 IconButton(
                   icon: Icon(Icons.close),
@@ -220,66 +184,19 @@ class ListaEquipos extends StatefulWidget {
 }
 
 class _ListaEquiposState extends State<ListaEquipos> {
-  late List<Equipo> _equipos = [];
-  late List<Equipo> _equiposFiltrados = [];
-  late ServicioEquipoProvider _ServicioEquipoProvider; // Agregado
-
-  void updateEquipos(List<Equipo> nuevosEquipos) {
-    setState(() {
-      _equipos.clear();
-      _equipos.addAll(nuevosEquipos);
-    });
-  }
+  late List<EquipoDetalle> _equiposFiltrados = [];
+  late ServicioEquipoProvider _ServicioEquipoProvider;
 
   @override
   void initState() {
     super.initState();
     _ServicioEquipoProvider =
         Provider.of<ServicioEquipoProvider>(context, listen: false);
-    _ServicioEquipoProvider.localEquipo();
-    setState(() {
-      _equipos = _ServicioEquipoProvider.equipos;
-      _equiposFiltrados = _equipos;
-      print('Equipos: $_equipos');
-    });
-
-    // _cargarEquipos();
-  }
-
-  @override
-  void dispose() {
-    widget.onListaRecargada();
-    super.dispose();
-  }
-
-  Future<void> _borrarEquipo(String id) async {
-    var url = Uri.parse('${Server().url}/equipo/' + id);
-    print('url: ${url}');
-    var response = await http.delete(url);
-    if (response.statusCode == 200) {
-      // _cargarEquipos();
-    } else {
-      print('error al cargar equipos');
-    }
-  }
-
-  void _filtrarEquipos(String query) {
-    setState(() {
-      if (query.isEmpty) {
-        _equiposFiltrados = _equipos;
-      } else {
-        _equiposFiltrados = _equipos.where((equipo) {
-          return equipo.nombre.toLowerCase().contains(query.toLowerCase());
-        }).toList();
-      }
-    });
+    _ServicioEquipoProvider.localEquipoDetalle();
   }
 
   @override
   Widget build(BuildContext context) {
-    _ServicioEquipoProvider =
-        Provider.of<ServicioEquipoProvider>(context, listen: false);
-
     return Scaffold(
       body: Column(
         children: [
@@ -294,48 +211,54 @@ class _ListaEquiposState extends State<ListaEquipos> {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: _equiposFiltrados.length,
-              itemBuilder: (context, index) {
-                Equipo equipo = _equiposFiltrados[index];
-                return Card(
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => DetallesEquipo(equipo: equipo),
-                        ),
-                      );
-                    },
-                    child: Column(
-                      children: <Widget>[
-                        ListTile(
-                          title: Text(equipo.nombre),
-                          subtitle: Text(
-                              ' ${equipo.precio} Bs. , descripcion: ${equipo.descripcion}'),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              IconButton(
-                                icon: Icon(Icons.edit),
-                                onPressed: () {
-                                  // Lógica para editar
-                                },
+            child: Consumer<ServicioEquipoProvider>(
+              builder: (context, servicioEquipoProvider, child) {
+                _equiposFiltrados = servicioEquipoProvider.equipoDetalle;
+                return ListView.builder(
+                  itemCount: _equiposFiltrados.length,
+                  itemBuilder: (context, index) {
+                    EquipoDetalle equipo = _equiposFiltrados[index];
+                    return Card(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  DetallesEquipo(equipo: equipo),
+                            ),
+                          );
+                        },
+                        child: Column(
+                          children: <Widget>[
+                            ListTile(
+                              title: Text(equipo.nombre),
+                              subtitle: Text(
+                                  ' ${equipo.precio} Bs. , descripcion: ${equipo.descripcion}'),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  IconButton(
+                                    icon: Icon(Icons.edit),
+                                    onPressed: () {
+                                      // Lógica para editar
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () {
+                                      // Lógica para eliminar
+                                      print('id: ${equipo}');
+                                      _borrarEquipo(equipo.id ?? '');
+                                    },
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                icon: Icon(Icons.delete),
-                                onPressed: () {
-                                  // Lógica para eliminar
-                                  print('id: ${equipo}');
-                                  _borrarEquipo(equipo.id ?? '');
-                                },
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    );
+                  },
                 );
               },
             ),
@@ -344,10 +267,35 @@ class _ListaEquiposState extends State<ListaEquipos> {
       ),
     );
   }
+
+  void _filtrarEquipos(String query) {
+    setState(() {
+      if (query.isEmpty) {
+        _equiposFiltrados = _ServicioEquipoProvider.equipoDetalle;
+      } else {
+        _equiposFiltrados =
+            _ServicioEquipoProvider.equipoDetalle.where((equipo) {
+          return equipo.nombre.toLowerCase().contains(query.toLowerCase());
+        }).toList();
+      }
+    });
+  }
+
+  Future<void> _borrarEquipo(String id) async {
+    var url = Uri.parse('${Server().url}/equipo/' + id);
+    print('url: ${url}');
+    var response = await http.delete(url);
+    if (response.statusCode == 200) {
+      // Actualizar la lista después de borrar
+      _ServicioEquipoProvider.syncEquipo();
+    } else {
+      print('error al cargar equipos');
+    }
+  }
 }
 
 class DetallesEquipo extends StatelessWidget {
-  final Equipo equipo;
+  final EquipoDetalle equipo;
 
   DetallesEquipo({required this.equipo});
 
@@ -361,25 +309,25 @@ class DetallesEquipo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // if (equipo.equipoFoto != null &&
-            //     equipo.equipoFoto!.archivoUrl != null)
-            //   Center(
-            //     child: Container(
-            //       width: 300, // Ancho de la imagen
-            //       height: 300, // Alto de la imagen
-            //       margin: EdgeInsets.only(top: 16.0), // Margen superior
-            //       decoration: BoxDecoration(
-            //         // Aquí añades el borde redondeado al contenedor
-            //         borderRadius:
-            //             BorderRadius.circular(20.0), // Ajusta el radio aquí
-            //       ),
-            //       clipBehavior: Clip.hardEdge,
-            //       child: Image.network(
-            //         equipo.equipoFoto!.archivoUrl ?? '',
-            //         fit: BoxFit.cover,
-            //       ),
-            //     ),
-            //   ),
+            if (equipo.equipoFoto != null &&
+                equipo.equipoFoto!.archivoUrl != null)
+              Center(
+                child: Container(
+                  width: 300, // Ancho de la imagen
+                  height: 300, // Alto de la imagen
+                  margin: EdgeInsets.only(top: 16.0), // Margen superior
+                  decoration: BoxDecoration(
+                    // Aquí añades el borde redondeado al contenedor
+                    borderRadius:
+                        BorderRadius.circular(20.0), // Ajusta el radio aquí
+                  ),
+                  clipBehavior: Clip.hardEdge,
+                  child: Image.network(
+                    equipo.equipoFoto!.archivoUrl ?? '',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(
                   left: 24.0, top: 8.0, right: 16.0, bottom: 8.0),
@@ -449,12 +397,12 @@ class DetallesEquipo extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
-                        // TextSpan(
-                        //     text:
-                        //         ' ${equipo.proveedors?.nombre ?? 'No disponible'}',
-                        //     style: TextStyle(
-                        //         fontWeight: FontWeight.bold,
-                        //         color: Colors.yellow)),
+                        TextSpan(
+                            text:
+                                ' ${equipo.proveedors?.nombre ?? 'No disponible'}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow)),
                       ],
                     ),
                   ),
@@ -468,12 +416,12 @@ class DetallesEquipo extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
-                        // TextSpan(
-                        //     text:
-                        //         ' ${equipo.equipoCategorias?.nombre ?? 'No disponible'}',
-                        //     style: TextStyle(
-                        //         fontWeight: FontWeight.bold,
-                        //         color: Colors.yellow)),
+                        TextSpan(
+                            text:
+                                ' ${equipo.equipoCategorias?.nombre ?? 'No disponible'}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow)),
                       ],
                     ),
                   ),
@@ -487,12 +435,12 @@ class DetallesEquipo extends StatelessWidget {
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white)),
-                        // TextSpan(
-                        //     text:
-                        //         ' ${equipo.equipoFoto?.archivoUrl ?? 'No disponible'}',
-                        //     style: TextStyle(
-                        //         fontWeight: FontWeight.bold,
-                        //         color: Colors.yellow)),
+                        TextSpan(
+                            text:
+                                ' ${equipo.equipoFoto?.archivoUrl ?? 'No disponible'}',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.yellow)),
                       ],
                     ),
                   ),

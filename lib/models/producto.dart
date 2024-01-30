@@ -166,3 +166,64 @@ class EquipoFoto {
     };
   }
 }
+
+class EquipoDetalle extends Equipo {
+  final Proveedor? proveedors;
+  final EquipoCategoria? equipoCategorias;
+  final EquipoFoto? equipoFoto;
+
+  EquipoDetalle({
+    String? id,
+    required String nombre,
+    String? descripcion,
+    double? precio,
+    int? stock,
+    this.proveedors,
+    this.equipoCategorias,
+    this.equipoFoto,
+  }) : super(
+          id: id,
+          nombre: nombre,
+          descripcion: descripcion,
+          precio: precio,
+          stock: stock,
+          id_proveedor: proveedors?.id,
+          id_equipo_categoria: equipoCategorias?.id,
+        );
+
+  factory EquipoDetalle.fromMap(Map<String, dynamic> map) {
+    return EquipoDetalle(
+      id: map["id"],
+      nombre: map['nombre'],
+      descripcion: map['descripcion'],
+      precio: map['precio'] != null ? map['precio'].toDouble() : null,
+      stock: map['stock'],
+      proveedors: map['id_proveedor_id'] != null
+          ? Proveedor(
+              id: map['id_proveedor_id'],
+              nombre: map['id_proveedor_nombre'],
+              descripcion: map['id_proveedor_descripcion'],
+              // ... otros campos de Proveedor
+            )
+          : null,
+      equipoCategorias: map['id_equipo_categoria'] != null
+          ? EquipoCategoria(
+              id: map['id_equipo_categoria'],
+              nombre: map['equipoCategorias_nombre'],
+              descripcion: map['equipoCategorias_descripcion'],
+              // ... otros campos de EquipoCategoria
+            )
+          : null,
+      equipoFoto: map['equipoFoto_id'] != null
+          ? EquipoFoto(
+              id: map['equipoFoto_id'],
+              id_equipo: map['equipoFoto_id_equipo'],
+              archivoUrl: map['equipoFoto_archivoUrl'],
+              formato: map['equipoFoto_formato'],
+              descripcion: map['equipoFoto_descripcion'],
+              // ... otros campos de EquipoFoto
+            )
+          : null,
+    );
+  }
+}

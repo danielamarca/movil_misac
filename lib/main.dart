@@ -1,17 +1,22 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:proyecto/componentes/Empleado/empleadoVentana.dart';
 import 'package:proyecto/provider/global.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:proyecto/provider/producto.dart';
 import 'package:proyecto/provider/servicioEquipoProvider.dart';
+import 'package:proyecto/provider/servicioClienteProvider.dart';
+import 'package:proyecto/provider/servicioEmpleadoProvider.dart';
+import 'package:proyecto/provider/servicioServicioProvider.dart';
 import 'package:proyecto/theme/theme.dart';
 // import 'package:proyecto/componentes/Equipo/equipos.dart';
 import 'package:proyecto/componentes/Equipo/articulos.dart';
-import 'package:proyecto/componentes/Empleado/main.dart';
-import 'package:proyecto/componentes/Servicio/servicio.dart';
+import 'package:proyecto/componentes/Servicio/servicioVentana.dart';
+import 'package:proyecto/componentes/Cliente/clienteVentana.dart';
 import 'package:proyecto/provider/engine.dart';
 import 'dart:async';
+import 'package:proyecto/syncronizacion/sync.dart';
 
 // void main() {
 //   runApp(ChangeNotifierProvider(
@@ -24,13 +29,17 @@ void main() async {
   // await DatabaseManager().initDatabase();
   runApp(
     MultiProvider(providers: [
+      ChangeNotifierProvider(create: (_) => Syncronization()),
       ChangeNotifierProvider(
         create: (_) => LogginProvider(),
       ),
       ChangeNotifierProvider(
         create: (_) => ProveedorGlobal(),
       ),
-      ChangeNotifierProvider(create: (_) => ServicioEquipoProvider())
+      ChangeNotifierProvider(create: (_) => ServicioEquipoProvider()),
+      ChangeNotifierProvider(create: (_) => ServicioClienteProvider()),
+      ChangeNotifierProvider(create: (_) => ServicioEmpleadoProvider()),
+      ChangeNotifierProvider(create: (_) => ServicioServicioProvider())
     ], child: const Proyecto()),
   );
 }
@@ -46,20 +55,53 @@ class _ProyectoState extends State<Proyecto> {
   @override
   void initState() {
     super.initState();
+    final syncTable = Provider.of<Syncronization>(context, listen: false);
+    syncTable.syncServerTable();
+
+    final loginProvider = Provider.of<LogginProvider>(context, listen: false);
+    loginProvider.syncServerTable();
     final servicioEquipoProvider =
         Provider.of<ServicioEquipoProvider>(context, listen: false);
     servicioEquipoProvider.syncEquipo();
+    final servicioClienteProvider =
+        Provider.of<ServicioClienteProvider>(context, listen: false);
+    servicioClienteProvider.syncCliente();
+    final servicioEmpleadoProvider =
+        Provider.of<ServicioEmpleadoProvider>(context, listen: false);
+    servicioEmpleadoProvider.syncEmpleado();
+    servicioEmpleadoProvider.syncTecnico();
+    final servicioProvider =
+        Provider.of<ServicioServicioProvider>(context, listen: false);
+    servicioProvider.syncServicio();
+    servicioProvider.syncServicioTipo();
+
     _startBackgroundProcess();
   }
 
   Future<void> _startBackgroundProcess() async {
-    const Duration interval = Duration(seconds: 10);
+    const Duration interval = Duration(seconds: 120);
     _timer = Timer.periodic(interval, (Timer timer) async {
-      print('inicio de sync');
+      final loginProvider = Provider.of<LogginProvider>(context, listen: false);
+      await loginProvider.syncServerTable();
+
       final servicioEquipoProvider =
           Provider.of<ServicioEquipoProvider>(context, listen: false);
       await servicioEquipoProvider.syncEquipo();
-      print('final de sync');
+      await servicioEquipoProvider.syncProveedor();
+      await servicioEquipoProvider.syncEquipoCategoria();
+      await servicioEquipoProvider.syncEquipoCodigo();
+      await servicioEquipoProvider.syncEquipoFoto();
+      final servicioClienteProvider =
+          Provider.of<ServicioClienteProvider>(context, listen: false);
+      await servicioClienteProvider.syncCliente();
+      final servicioEmpleadoProvider =
+          Provider.of<ServicioEmpleadoProvider>(context, listen: false);
+      await servicioEmpleadoProvider.syncEmpleado();
+      await servicioEmpleadoProvider.syncTecnico();
+      final servicioProvider =
+          Provider.of<ServicioServicioProvider>(context, listen: false);
+      await servicioProvider.syncServicio();
+      await servicioProvider.syncServicioTipo();
     });
   }
 
@@ -144,7 +186,8 @@ class _Login extends State<Login> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => MainHome(user: provider.user!.username)),
+              builder: (context) =>
+                  MainHome(user: provider.user?.username ?? 'NombreGenérico')),
         );
         break;
       case 1:
@@ -394,8 +437,8 @@ class _ContentHome extends State<ContentHome> {
             ]),
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => Servicio()));
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ServicioView()));
             },
           ),
         ),
@@ -461,7 +504,10 @@ class _ContentHome extends State<ContentHome> {
               )
             ]),
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
-            onTap: () {},
+            onTap: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => ClientesView()));
+            },
           ),
         ),
         Divider(
@@ -488,7 +534,7 @@ class _ContentHome extends State<ContentHome> {
             trailing: Icon(Icons.arrow_forward_ios, size: 15),
             onTap: () {
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MainEmpleado()));
+                  MaterialPageRoute(builder: (context) => EmpleadoView()));
             },
           ),
         ),
